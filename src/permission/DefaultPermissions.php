@@ -23,8 +23,12 @@ declare(strict_types=1);
 
 namespace pocketmine\permission;
 
-use pocketmine\lang\KnownTranslationFactory as l10n;
+use pocketmine\lang\KnownTranslationParameterInfo;
+use pocketmine\lang\Translatable;
 use pocketmine\permission\DefaultPermissionNames as Names;
+use pocketmine\utils\AssumptionFailedError;
+use function preg_last_error_msg;
+use function preg_replace;
 
 abstract class DefaultPermissions{
 	public const ROOT_CONSOLE = Names::GROUP_CONSOLE;
@@ -47,72 +51,88 @@ abstract class DefaultPermissions{
 		return PermissionManager::getInstance()->getPermission($candidate->getName());
 	}
 
-	public static function registerCorePermissions() : void{
-		$consoleRoot = self::registerPermission(new Permission(self::ROOT_CONSOLE, l10n::pocketmine_permission_group_console()));
-		$operatorRoot = self::registerPermission(new Permission(self::ROOT_OPERATOR, l10n::pocketmine_permission_group_operator()), [$consoleRoot]);
-		$everyoneRoot = self::registerPermission(new Permission(self::ROOT_USER, l10n::pocketmine_permission_group_user()), [$operatorRoot]);
+	/**
+	 * @param Permission[] $grantedBy
+	 */
+	private static function registerNoArgsDesc(string $permission, array $grantedBy) : Permission{
+		$translationKey = preg_replace("/^pocketmine\./", "pocketmine.permission.", $permission) ?? throw new AssumptionFailedError(preg_last_error_msg());
+		$parameters = KnownTranslationParameterInfo::TABLE[$translationKey] ?? null;
+		if($parameters === null){
+			throw new \InvalidArgumentException("Expected translation key $translationKey not defined");
+		}
+		if(count($parameters) !== 0){
+			throw new \InvalidArgumentException("Cannot use this function to register a permission with a parameterisable description string");
+		}
+		$translatable = new Translatable($translationKey);
+		return self::registerPermission(new Permission($permission, $translatable), $grantedBy);
+	}
 
-		self::registerPermission(new Permission(Names::BROADCAST_ADMIN, l10n::pocketmine_permission_broadcast_admin()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::BROADCAST_USER, l10n::pocketmine_permission_broadcast_user()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_BAN_IP, l10n::pocketmine_permission_command_ban_ip()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_BAN_LIST, l10n::pocketmine_permission_command_ban_list()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_BAN_PLAYER, l10n::pocketmine_permission_command_ban_player()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_CLEAR_OTHER, l10n::pocketmine_permission_command_clear_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_CLEAR_SELF, l10n::pocketmine_permission_command_clear_self()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_DEFAULTGAMEMODE, l10n::pocketmine_permission_command_defaultgamemode()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_DIFFICULTY, l10n::pocketmine_permission_command_difficulty()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_DUMPMEMORY, l10n::pocketmine_permission_command_dumpmemory()), [$consoleRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_EFFECT_OTHER, l10n::pocketmine_permission_command_effect_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_EFFECT_SELF, l10n::pocketmine_permission_command_effect_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_ENCHANT_OTHER, l10n::pocketmine_permission_command_enchant_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_ENCHANT_SELF, l10n::pocketmine_permission_command_enchant_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_GAMEMODE_OTHER, l10n::pocketmine_permission_command_gamemode_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_GAMEMODE_SELF, l10n::pocketmine_permission_command_gamemode_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_GC, l10n::pocketmine_permission_command_gc()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_GIVE_OTHER, l10n::pocketmine_permission_command_give_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_GIVE_SELF, l10n::pocketmine_permission_command_give_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_HELP, l10n::pocketmine_permission_command_help()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_KICK, l10n::pocketmine_permission_command_kick()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_KILL_OTHER, l10n::pocketmine_permission_command_kill_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_KILL_SELF, l10n::pocketmine_permission_command_kill_self()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_LIST, l10n::pocketmine_permission_command_list()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_ME, l10n::pocketmine_permission_command_me()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_OP_GIVE, l10n::pocketmine_permission_command_op_give()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_OP_TAKE, l10n::pocketmine_permission_command_op_take()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_PARTICLE, l10n::pocketmine_permission_command_particle()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_PLUGINS, l10n::pocketmine_permission_command_plugins()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SAVE_DISABLE, l10n::pocketmine_permission_command_save_disable()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SAVE_ENABLE, l10n::pocketmine_permission_command_save_enable()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SAVE_PERFORM, l10n::pocketmine_permission_command_save_perform()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SAY, l10n::pocketmine_permission_command_say()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SEED, l10n::pocketmine_permission_command_seed()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SETWORLDSPAWN, l10n::pocketmine_permission_command_setworldspawn()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SPAWNPOINT_OTHER, l10n::pocketmine_permission_command_spawnpoint_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_SPAWNPOINT_SELF, l10n::pocketmine_permission_command_spawnpoint_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_STATUS, l10n::pocketmine_permission_command_status()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_STOP, l10n::pocketmine_permission_command_stop()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TELEPORT_OTHER, l10n::pocketmine_permission_command_teleport_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TELEPORT_SELF, l10n::pocketmine_permission_command_teleport_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TELL, l10n::pocketmine_permission_command_tell()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIME_ADD, l10n::pocketmine_permission_command_time_add()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIME_QUERY, l10n::pocketmine_permission_command_time_query()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIME_SET, l10n::pocketmine_permission_command_time_set()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIME_START, l10n::pocketmine_permission_command_time_start()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIME_STOP, l10n::pocketmine_permission_command_time_stop()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TIMINGS, l10n::pocketmine_permission_command_timings()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TITLE_OTHER, l10n::pocketmine_permission_command_title_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TITLE_SELF, l10n::pocketmine_permission_command_title_self()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_TRANSFERSERVER, l10n::pocketmine_permission_command_transferserver()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_UNBAN_IP, l10n::pocketmine_permission_command_unban_ip()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_UNBAN_PLAYER, l10n::pocketmine_permission_command_unban_player()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_VERSION, l10n::pocketmine_permission_command_version()), [$everyoneRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_ADD, l10n::pocketmine_permission_command_whitelist_add()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_DISABLE, l10n::pocketmine_permission_command_whitelist_disable()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_ENABLE, l10n::pocketmine_permission_command_whitelist_enable()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_LIST, l10n::pocketmine_permission_command_whitelist_list()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_RELOAD, l10n::pocketmine_permission_command_whitelist_reload()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_WHITELIST_REMOVE, l10n::pocketmine_permission_command_whitelist_remove()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_XP_OTHER, l10n::pocketmine_permission_command_xp_other()), [$operatorRoot]);
-		self::registerPermission(new Permission(Names::COMMAND_XP_SELF, l10n::pocketmine_permission_command_xp_self()), [$operatorRoot]);
+	public static function registerCorePermissions() : void{
+		$consoleRoot = self::registerNoArgsDesc(self::ROOT_CONSOLE, []);
+		$operatorRoot = self::registerNoArgsDesc(self::ROOT_OPERATOR, [$consoleRoot]);
+		$everyoneRoot = self::registerNoArgsDesc(self::ROOT_USER, [$operatorRoot]);
+
+		self::registerNoArgsDesc(Names::BROADCAST_ADMIN, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::BROADCAST_USER, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_BAN_IP, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_BAN_LIST, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_BAN_PLAYER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_CLEAR_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_CLEAR_SELF, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_DEFAULTGAMEMODE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_DIFFICULTY, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_DUMPMEMORY, [$consoleRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_EFFECT_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_EFFECT_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_ENCHANT_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_ENCHANT_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_GAMEMODE_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_GAMEMODE_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_GC, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_GIVE_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_GIVE_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_HELP, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_KICK, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_KILL_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_KILL_SELF, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_LIST, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_ME, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_OP_GIVE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_OP_TAKE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_PARTICLE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_PLUGINS, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SAVE_DISABLE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SAVE_ENABLE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SAVE_PERFORM, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SAY, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SEED, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SETWORLDSPAWN, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SPAWNPOINT_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_SPAWNPOINT_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_STATUS, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_STOP, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TELEPORT_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TELEPORT_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TELL, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIME_ADD, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIME_QUERY, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIME_SET, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIME_START, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIME_STOP, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TIMINGS, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TITLE_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TITLE_SELF, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_TRANSFERSERVER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_UNBAN_IP, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_UNBAN_PLAYER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_VERSION, [$everyoneRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_ADD, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_DISABLE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_ENABLE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_LIST, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_RELOAD, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_WHITELIST_REMOVE, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_XP_OTHER, [$operatorRoot]);
+		self::registerNoArgsDesc(Names::COMMAND_XP_SELF, [$operatorRoot]);
 	}
 }
