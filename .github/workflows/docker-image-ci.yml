@@ -1,0 +1,37 @@
+name: Docker image CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        submodules: true #needed for build/php submodule
+
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
+
+    - name: Create data directories
+      run: |
+        mkdir ./docker/test_data
+        sudo chown -R 1000:1000 ./docker/testsuite ./docker/test_data
+
+    - name: Test if it builds
+      run: docker build -f ./docker/Dockerfile -t local-pocketmine-mp --build-arg GIT_HASH=${{ github.sha }} pocketmine-mp
+    
+    - name: Test if it runs the normal server properly
+      run: echo stop | docker run --rm -i local-pocketmine-mp
+
+    - name: Test if it loads plugins
+      run: |
+        echo stop | docker run --rm -i -v ./docker/test_data:/data -v ./docker/testsuite/create-data:/plugins local-pocketmine-mp
+        test -f ./docker/test_data/plugin_data/data-test/create-data
+        test $(cat data/plugin_data/data-test/create-data) == "successful"
+
+    - name: Test if it persists plugin data
+      run: echo stop | docker run --rm -i -v ./docker/test_data:/data -v ./docker/testsuite/verify-data:/plugins local-pocketmine-mp
