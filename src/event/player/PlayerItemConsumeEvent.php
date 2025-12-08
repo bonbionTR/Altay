@@ -53,7 +53,12 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	 * @return Item[]
 	 */
 	public function getResidue() : array{
-		return $this->residue;
+		$out = [];
+		foreach($this->residue as $item){
+			$out[] = clone $item;
+		}
+
+		return $out;
 	}
 
 	/**
@@ -63,6 +68,12 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	 */
 	public function setResidue(array $items) : void{
 		Utils::validateArrayValueType($items, function(Item $_) : void{});
-		$this->residue = $items;
+
+		$out = [];
+		foreach($items as $item){
+			$out[] = clone $item;
+		}
+
+		$this->residue = $out;
 	}
 }
