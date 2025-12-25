@@ -1005,6 +1005,10 @@ class InGamePacketHandler extends PacketHandler{
 			if(strlen($packet->formData) > self::MAX_FORM_RESPONSE_SIZE){
 				throw new PacketHandlingException("Form response data too large, refusing to decode (received" . strlen($packet->formData) . " bytes, max " . self::MAX_FORM_RESPONSE_SIZE . " bytes)");
 			}
+			if(!$this->player->hasPendingForm($packet->formId)){
+				$this->session->getLogger()->debug("Got unexpected response for form $packet->formId");
+				return false;
+			}
 			try{
 				$responseData = json_decode($packet->formData, true, self::MAX_FORM_RESPONSE_DEPTH, JSON_THROW_ON_ERROR);
 			}catch(\JsonException $e){

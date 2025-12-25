@@ -2299,6 +2299,14 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
+	 * @internal
+	 * Returns whether the server is waiting for a response for a form with the given ID.
+	 */
+	public function hasPendingForm(int $formId) : bool{
+		return isset($this->forms[$formId]);
+	}
+
+	/**
 	 * Closes the current viewing form and forms in queue.
 	 */
 	public function closeAllForms() : void{
