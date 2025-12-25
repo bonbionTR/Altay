@@ -127,6 +127,7 @@ use const JSON_THROW_ON_ERROR;
  * This handler handles packets related to general gameplay.
  */
 class InGamePacketHandler extends PacketHandler{
+	private const MAX_FORM_RESPONSE_SIZE = 10 * 1024; //10 KiB should be more than enough
 	private const MAX_FORM_RESPONSE_DEPTH = 2; //modal/simple will be 1, custom forms 2 - they will never contain anything other than string|int|float|bool|null
 
 	protected float $lastRightClickTime = 0.0;
@@ -999,6 +1000,9 @@ class InGamePacketHandler extends PacketHandler{
 			//TODO: make APIs for this to allow plugins to use this information
 			return $this->player->onFormSubmit($packet->formId, null);
 		}elseif($packet->formData !== null){
+			if(strlen($packet->formData) > self::MAX_FORM_RESPONSE_SIZE){
+				throw new PacketHandlingException("Form response data too large, refusing to decode (received" . strlen($packet->formData) . " bytes, max " . self::MAX_FORM_RESPONSE_SIZE . " bytes)");
+			}
 			try{
 				$responseData = json_decode($packet->formData, true, self::MAX_FORM_RESPONSE_DEPTH, JSON_THROW_ON_ERROR);
 			}catch(\JsonException $e){
