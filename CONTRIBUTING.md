@@ -83,7 +83,7 @@ The basic procedure to create a pull request is:
 ## Tests and quality checks
 
 PocketMine-MP uses several tools to enforce code quality standards.
-You can use these tools to check your code locally before you commit, which helps catch mistakes more quickly and saves both your energy and maintainers for reviewing logic instead of formatting, syntax and other boring stuff.
+You can use these tools to check your code locally before you commit, which helps catch mistakes more quickly, and saves both your energy and maintainers' for reviewing logic, instead of formatting, syntax and other boring stuff.
 
 | Tool | Purpose | Installing | Running |
 |:--------|:---------|:----------|:------------|
