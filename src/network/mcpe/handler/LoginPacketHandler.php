@@ -57,6 +57,7 @@ use function is_object;
 use function json_decode;
 use function md5;
 use function ord;
+use function substr;
 use const JSON_THROW_ON_ERROR;
 
 /**

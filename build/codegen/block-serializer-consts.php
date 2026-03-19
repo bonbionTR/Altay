@@ -35,6 +35,7 @@ use pocketmine\network\mcpe\convert\BlockStateDictionary;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\Utils;
+use function array_filter;
 use function array_values;
 use function asort;
 use function count;
