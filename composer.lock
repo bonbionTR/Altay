@@ -96,12 +96,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "bc19aad0ab45d8df5ed0af9a0af9f713379e7d1e"
+                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/bc19aad0ab45d8df5ed0af9a0af9f713379e7d1e",
-                "reference": "bc19aad0ab45d8df5ed0af9a0af9f713379e7d1e",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
+                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
                 "shasum": ""
             },
             "require": {
@@ -145,7 +145,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/master"
             },
-            "time": "2026-07-10T11:26:38+00:00"
+            "time": "2026-07-12T12:08:26+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",
